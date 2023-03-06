@@ -2,12 +2,17 @@ import express from "express";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes.js";
 import connectDB from "./config/db.js";
-
+import cors from "cors";
 const app = express();
 
 dotenv.config();
 app.use(express.json());
 connectDB();
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 app.get("/", (req, res) => {
   res.send("hy");
 });

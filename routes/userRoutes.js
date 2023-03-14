@@ -5,7 +5,15 @@ import { authUser, registerUser } from "../controllers/userController.js";
 
 const router = express.Router();
 
-router.post("/login", authUser);
+router.post(
+  "/login",
+  body("email").isEmail(),
+  body("password")
+    .isLength({ min: 5 })
+    .withMessage("must be at least 5 chars long")
+    .matches(/\d/),
+  authUser
+);
 router.post(
   "/signup",
   body("email").isEmail(),

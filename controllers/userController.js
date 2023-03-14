@@ -3,20 +3,30 @@ import asyncHanlder from "express-async-handler";
 import bcrypt from "bcryptjs";
 import { validationResult } from "express-validator";
 import generateToken from "../utils/generateToken.js";
+import { matchPassword } from "../utils/matchPassword.js";
 
 // @desc Auth user & get token
 // @route Post/api/users/login
 // @access Public
 const authUser = asyncHanlder(async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (user) {
-    res.json({
-      name: "shahiq",
-    });
+  const { errors } = validationResult(req);
+  if (errors.length !== 0) {
+    const pickError = errors[0];
+    throw new Error(`${pickError.param} ${pickError.msg}`);
   } else {
-    res.status(403);
-    throw new Error("Invalid Email and password");
+    const user = await User.findOne({ email });
+    if (user && matchPassword(user.password, password)) {
+      res.json({
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        token: generateToken(user._id),
+      });
+    } else {
+      res.status(403);
+      throw new Error("Invalid Email and password");
+    }
   }
 });
 
@@ -27,7 +37,6 @@ const registerUser = asyncHanlder(async (req, res) => {
   const { name, email, password } = req.body;
   const { errors } = validationResult(req);
   if (errors.length !== 0) {
-    console.log(errors[0]);
     const pickError = errors[0];
     throw new Error(`${pickError.param} ${pickError.msg}`);
   } else {
